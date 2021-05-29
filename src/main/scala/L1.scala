@@ -1,6 +1,4 @@
 import CommutativeRing.CommutativeRingOps
-import org.scalacheck.{Arbitrary, Shrink}
-
 import scala.language.implicitConversions
 
 trait CommutativeRing[A] {
@@ -58,54 +56,8 @@ object CommutativeRing {
   }
 }
 
-object L1 {
-  def main(args: Array[String]): Unit = {
-    implicit def gops[A](a: A)(implicit g: CommutativeRing[A]) = {
-      new CommutativeRingOps[A](a)
-    }
-
-    class CommutativeRingLaws[A: CommutativeRing: Arbitrary: Shrink](name: String) {
-      def laws = {
-        println(s"Checking ${name}")
-        import org.scalacheck.Prop.forAll
-
-        val sum = forAll { i: Int => i ++ i ==  Some(2 * i) }
-        sum.check()
-
-        val mult = forAll { i: Int => i ** i ==  Some(i * i) }
-        mult.check()
-
-        val invCombine = forAll { i: Int => i.inv ++ i == Some(0) }
-        invCombine.check()
-
-        val assocForSum = forAll { (a: Int, b: Int, c: Int) =>
-          (a ++ b).flatMap(_ ++ c) == (b ++ c).flatMap(a ++ _)
-        }
-        assocForSum.check()
-
-        val comm = forAll { (i: Int, j: Int) => i ++ j ==  Some(j + i) }
-        comm.check()
-
-        val zero = forAll { i: Int => i.zero ++ i ==  Some(i) }
-        zero.check()
-
-        val assocForMult = forAll { (a: Int, b: Int, c: Int) =>
-          (a ** b).flatMap(_ ** c) == (b ** c).flatMap(a ** _)
-        }
-        assocForMult.check()
-
-        val one = forAll { i: Int => i.one ** i == Some(i) }
-        one.check()
-
-        val distrib = forAll { (a: Int, b: Int, c: Int) =>
-          (b ++ c).flatMap(a ** _) == ((a ** b) ++ (a**c))
-        }
-        assocForMult.check()
-
-        println(s"Checking ${name} done")
-      }
-    }
-
-    new CommutativeRingLaws[Int]("int").laws
+object CommutativeRingOps {
+  implicit def commutativeRingSyntax[A](a: A)(implicit g: CommutativeRing[A]): CommutativeRingOps[A] = {
+    new CommutativeRingOps[A](a)
   }
 }
